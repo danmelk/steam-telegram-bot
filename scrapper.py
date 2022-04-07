@@ -1,4 +1,5 @@
 from re import S
+from textwrap import indent
 from bs4 import BeautifulSoup
 import json
 import requests
@@ -30,7 +31,7 @@ def steam_scrape():
             pure_price = price.text
             if "%" in pure_price:
                 getDiscount = pure_price.split("%")
-                getOriginal = getDiscount[1].split(".")
+                getOriginal = getDiscount[1].split("€")
                 discountList.append(getDiscount[0])
                 originalPriceList.append(getOriginal[0])
                 finalPriceList.append(getOriginal[1])
@@ -68,10 +69,8 @@ def steam_scrape():
         resp['platform'] = info[5]
         output.append(resp)
 
-    jsonObj = json.dumps(output)
-
-    return(output)
-
+    jsonObj = json.dumps(output, indent=4)
+    return(jsonObj)
 
 print(steam_scrape())
 
