@@ -1,74 +1,79 @@
-from re import S
-from textwrap import indent
 from bs4 import BeautifulSoup
 import json
 import requests
 import lxml.html
 
 def steam_scrape():
-    url = requests.get('https://store.steampowered.com/explore/new/')
+    url = requests.get('https://store.steampowered.com/search/?filter=popularnew&sort_by=Released_DESC')
     doc = BeautifulSoup(url.text, "lxml")
     lxmldoc = lxml.html.fromstring(url.content)
-    apps = lxmldoc.xpath('//div[@id="tab_newreleases_content"]')[0]
+    apps = lxmldoc.xpath('//div[@id="search_resultsRows"]')[0]
 
+    currentPriceList = []
     titleList = []
-    finalPriceList = []
+    platformList = []
     discountList = []
     originalPriceList = []
-    tagList = []
-    platformList = []
+    dateList = []
+    reviewList = []
 
-    prices = doc.find_all("div", {"class" : [
-    "discount_block tab_item_discount", 
-    "discount_block tab_item_discount no_discount", 
-    "discount_block empty tab_item_discount",
-    ]})
-    for price in prices:
-        if price.text == '':
-            finalPriceList.append('Free')
-        else:
-            pure_price = price.text
-            if "%" in pure_price:
-                getDiscount = pure_price.split("%")
-                getOriginal = getDiscount[1].split(".")
-                discountList.append(getDiscount[0])
-                originalPriceList.append(getOriginal[0])
-                finalPriceList.append(getOriginal[1])
-            else:
-                discountList.append('None')
-                originalPriceList.append('None')  
-                finalPriceList.append(pure_price)
 
-    titles = doc.find_all("div", class_ = "tab_item_name")
+    titles = doc.find_all("span", class_ = "title")
     for title in titles:
         titleList.append(title.text)
 
-    tags = doc.find_all("div", class_ = "tab_item_top_tags")
-    for tag in tags:
-        tagList.append(tag.text)
+    discountPrices = doc.find_all("div", {"class" : [
+    "col search_price discounted responsive_secondrow", 
+    "col search_price responsive_secondrow",
+    ]})
+    for price in discountPrices:
+        fixed = " ".join(price.text.split())
+        currentPrice = fixed.split('.')
+        if len(currentPrice) == 3:
+            originalPriceList.append(currentPrice[0])
+            currentPriceList.append(currentPrice[1])
+        else:
+            currentPriceList.append(currentPrice[0])
+            originalPriceList.append('None')
 
-    platforms_div = apps.xpath('.//div[@class="tab_item_details"]')
+    discounts = doc.find_all("div", class_ = 'col search_discount responsive_secondrow')
+    for discount in discounts:
+        fixed = " ".join(discount.text.split())
+        if fixed == '':
+            discountList.append('None')
+        else:
+            discountList.append(fixed)
+
+    platforms_div = apps.xpath('.//div[@class="col search_name ellipsis"]')
     for game in platforms_div:
         temp = game.xpath('.//span[contains(@class, "platform_img")]') 
         platforms = [t.get('class').split(' ')[-1] for t in temp]
         if 'hmd_separator' in platforms:
             platforms.remove('hmd_separator')
         platformList.append(platforms)
+
+    date = doc.find_all("div", class_ = 'col search_released responsive_secondrow')
+    for entry in date:
+        dateList.append(entry.text)
             
+    for feedback in doc.find_all('span', {'data-tooltip-html' : True}):
+        review = feedback['data-tooltip-html'].split("<br>")
+        reviewList.append(review)
 
     output = []
-    for info in zip(titleList, finalPriceList, discountList, originalPriceList, tagList, platformList):
+    for info in zip(titleList, currentPriceList, discountList, originalPriceList, platformList, dateList, reviewList):
         resp = {}
         resp['title'] = info[0]
         resp['price'] = info[1]
         resp['discount'] = info[2]
         resp['original-price'] = info[3]
-        resp['tags'] = info[4]
-        resp['platform'] = info[5]
+        resp['platform'] = info[4]
+        resp['date'] = info[5]
+        resp['review'] = info[6]
         output.append(resp)
 
     jsonObj = json.dumps(output, indent=4)
-    return(jsonObj)
+    return(output)
 
 print(steam_scrape())
 
