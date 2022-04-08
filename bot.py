@@ -15,7 +15,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 from scrapper import steam_scrape
 
 def start(update: Update, context: CallbackContext):
-    
+    game_data = steam_scrape()
     context.bot.send_message(chat_id = update.effective_chat.id, text = "Beep boop I'm a bot.") 
 
 def caps(update: Update, context: CallbackContext):
