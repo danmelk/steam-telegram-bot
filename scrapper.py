@@ -28,7 +28,7 @@ def steam_scrape():
     ]})
     for price in discountPrices:
         fixed = " ".join(price.text.split())
-        currentPrice = fixed.split('.')
+        currentPrice = fixed.split('.') #€
         if len(currentPrice) == 3:
             originalPriceList.append(currentPrice[0])
             currentPriceList.append(currentPrice[1])
@@ -72,8 +72,7 @@ def steam_scrape():
         resp['review'] = info[6]
         output.append(resp)
 
-    jsonObj = json.dumps(output, indent=4)
     return(output)
 
-print(steam_scrape())
+steam_scrape()
 
