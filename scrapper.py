@@ -1,5 +1,9 @@
+from difflib import restore
+from os import link
+import re
 from bs4 import BeautifulSoup
 import json
+from pytest import Item
 import requests
 import lxml.html
 
@@ -9,6 +13,7 @@ def steam_scrape():
     lxmldoc = lxml.html.fromstring(url.content)
     apps = lxmldoc.xpath('//div[@id="search_resultsRows"]')[0]
 
+    appLink = []
     currentPriceList = []
     titleList = []
     platformList = []
@@ -17,6 +22,9 @@ def steam_scrape():
     dateList = []
     reviewList = []
 
+    for link in doc.find_all('a', {'data-gpnav' : True}):
+        Item = link['href'].split("/?snr")
+        appLink.append(Item[0])
 
     titles = doc.find_all("span", class_ = "title")
     for title in titles:
@@ -61,15 +69,16 @@ def steam_scrape():
         reviewList.append(review)
 
     output = []
-    for info in zip(titleList, currentPriceList, discountList, originalPriceList, platformList, dateList, reviewList):
+    for info in zip(titleList, currentPriceList, discountList, originalPriceList, platformList, dateList, reviewList, appLink):
         resp = {}
+        resp['link'] = info[7]
         resp['title'] = info[0]
         resp['price'] = info[1]
         resp['discount'] = info[2]
         resp['original-price'] = info[3]
         resp['platform'] = info[4]
-        resp['date'] = info[5]
         resp['review'] = info[6]
+        resp['date'] = info[5]
         output.append(resp)
 
     return(output)
