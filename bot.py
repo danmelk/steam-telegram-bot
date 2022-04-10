@@ -1,7 +1,9 @@
 import os
 import json
 from warnings import filters
-from telegram import Update, TelegramObject, MessageEntity
+import telegram
+from telegram.constants import MESSAGEENTITY_ALL_TYPES
+from telegram import MessageEntity, ParseMode, Update, TelegramObject
 from telegram.ext import CallbackContext, CommandHandler, Updater, MessageHandler, Filters
 import logging
 from dotenv import load_dotenv
@@ -20,17 +22,19 @@ def caps(update: Update, context: CallbackContext):
 
 def channel(update: Update, context: CallbackContext):
     game_data = steam_scrape()
-
     for entry in game_data[0:5]:
-        # for dictElement in entry:
-        # for eachStr in entry['review']:
-        #     merged = ratingData 
-        if entry['discount'] == 'None':
-            message = f"Link -> {entry['link']}\nTitle -> {entry['title']}\nPrice -> {entry['price']}\nPlatform -> {entry['platform']}\nRating -> {entry['review']}\nDate -> {entry['date']}"
+        reviewStr = entry['review']
+        mergedReview = f"{reviewStr[0]}: {reviewStr[1]}"
+        platformStr = entry['platform']
+        if len(platformStr) == 2:
+            mergedPlatform = f'{platformStr[0]}, {platformStr[1]}'
         else:
-            message = f"Link -> {entry['link']}\nTitle -> {entry['title']}\nPrice -> {entry['price']}\nPlatform -> {entry['platform']}\nRating -> {entry['review']}\nDate -> {entry['date']}"
-        
-        context.bot.send_message(chat_id = channel_url, text = message)
+            mergedPlatform = f'{platformStr[0]}'
+        if entry['discount'] == 'None':
+            message = f"<b>Title</b> -> <a href='{entry['link']}'><b>{entry['title']}</b></a>\n<b>Price</b> -> {entry['price']}\n<b>Platform</b> -> {mergedPlatform}\n<b>Rating</b> -> {mergedReview}\n<b>Date</b> -> {entry['date']}"
+        else:
+            message = f"<b>Title</b> -> <a href='{entry['link']}'><b>{entry['title']}</b></a>\n<b>Price</b> -> <del>{entry['original-price']}</del> {entry['price']} ({entry['discount']})\n<b>Platform</b> -> {mergedPlatform}\n<b>Rating</b> -> {mergedReview}\n<b>Date</b> -> {entry['date']}"
+        context.bot.send_message(chat_id = update.effective_chat.id, text = message, parse_mode = ParseMode.HTML)
 
 
 def main():
