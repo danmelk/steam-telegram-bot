@@ -1,4 +1,5 @@
 import os
+import time
 import json
 from warnings import filters
 import telegram
@@ -20,8 +21,9 @@ def caps(update: Update, context: CallbackContext):
     text_caps = ' '.join(context.args).upper()
     context.bot.send_message(chat_id=update.effective_chat.id, text=text_caps)
 
-def channel(update: Update, context: CallbackContext):
+def channel(update: Update, context: CallbackContext):    
     game_data = steam_scrape()
+    print(game_data)
     for entry in game_data[0:5]:
         reviewStr = entry['review']
         mergedReview = f"{reviewStr[0]}: {reviewStr[1]}"
@@ -34,7 +36,7 @@ def channel(update: Update, context: CallbackContext):
             message = f"<b>Title</b> -> <a href='{entry['link']}'><b>{entry['title']}</b></a>\n<b>Price</b> -> {entry['price']}\n<b>Platform</b> -> {mergedPlatform}\n<b>Rating</b> -> {mergedReview}\n<b>Date</b> -> {entry['date']}"
         else:
             message = f"<b>Title</b> -> <a href='{entry['link']}'><b>{entry['title']}</b></a>\n<b>Price</b> -> <del>{entry['original-price']}</del> {entry['price']} ({entry['discount']})\n<b>Platform</b> -> {mergedPlatform}\n<b>Rating</b> -> {mergedReview}\n<b>Date</b> -> {entry['date']}"
-        context.bot.send_message(chat_id = update.effective_chat.id, text = message, parse_mode = ParseMode.HTML)
+        context.bot.send_message(chat_id = channel_url, text = message, parse_mode = ParseMode.HTML)
 
 
 def main():
