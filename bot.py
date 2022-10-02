@@ -1,15 +1,10 @@
 import os
-import time
-import json
-from warnings import filters
-import telegram
-from telegram.constants import MESSAGEENTITY_ALL_TYPES
 from telegram import MessageEntity, ParseMode, Update, TelegramObject
 from telegram.ext import CallbackContext, CommandHandler, Updater, MessageHandler, Filters
 import logging
 from dotenv import load_dotenv
 load_dotenv()
-channel_url = '@steam_new_releases'
+channel_url = os.getenv('CHANNEL_URL')
 
 
 from scrapper import steam_scrape
