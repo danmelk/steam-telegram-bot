@@ -1,9 +1,4 @@
-from difflib import restore
-from os import link
-import re
 from bs4 import BeautifulSoup
-import json
-from pytest import Item
 import requests
 import lxml.html
 
